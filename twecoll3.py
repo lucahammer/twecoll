@@ -123,5 +123,5 @@ if __name__ == '__main__':
     except:
         click.echo('Something is wrong with your config.')
         config = twitter_setup()
-        api = create_api()
+        api = create_api(config)
     assistant()
