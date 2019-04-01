@@ -93,7 +93,7 @@ def collect_and_save_friends(user, refresh=False):
 
 def tweets(query, filename='', q=False):
     if filename == '':
-        filename = '/{0}/{1}.tweets.jsonl'.format(DIR, query)
+        filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
 
     if q:
         r = TwitterPager(api, 'search/tweets',
@@ -120,9 +120,17 @@ def tweets(query, filename='', q=False):
     return
 
 
+def load_accounts_from_file(filename):
+    ids = []
+    with open('{}/{}'.format(DIR, filename), 'r', encoding='utf-8') as f:
+        for number, line in enumerate(f):
+            item = json.loads(line)
+            ids.append(item['user']['id'])
+    return(list(set(ids)))
+
+
 '''
 # Todos
-def load():
 
 def init():
 
@@ -169,8 +177,10 @@ def assistant(goal):
 
 if __name__ == '__main__':
     config = load_config()
-    os.mkdir('/{}'.format(DIR))
-    os.mkdir('/{}'.format(FDAT_DIR))
+    if not os.path.exists('{}'.format(DIR)):
+        os.mkdir('{}'.format(DIR))
+    if not os.path.exists('{}'.format(FDAT_DIR)):
+        os.mkdir('{}'.format(FDAT_DIR))
     try:
         api = create_api(config)
     except:
