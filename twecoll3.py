@@ -6,6 +6,7 @@ from TwitterAPI import TwitterAPI, TwitterPager
 from tqdm import tqdm
 
 DIR = 'local_data'
+FDAT_DIR = '{}/fdat'.format(DIR)
 
 
 def load_config(file='config.yaml'):
@@ -37,8 +38,59 @@ def create_api(config):
                      )
     return (api)
 
+# Get IDs of the accounts a given account follows
+# over5000 allows to collect more than 5000 friends
+
+
+def collect_friends(account_id, cursor=-1, over5000=False):
+    ids = []
+    r = api.request('friends/ids', {'user_id': account_id, 'cursor': cursor})
+
+    if 'errors' in r.json():
+        if r.json()['errors'][0]['code'] == 34:
+            return(ids)
+
+    for item in r:
+        if isinstance(item, int):
+            ids.append(item)
+        elif 'message' in item:
+            print('{0} ({1})'.format(item['message'], item['code']))
+
+    if over5000:
+        if 'next_cursor' in r.json:
+            if json['next_cursor'] != 0:
+                ids = ids + collect_friends(account_id, json['next_cursor'])
+
+    return(ids)
+
+
+def get_friends(friend_id):
+    friends = []
+    try:
+        with open('{0}/{1}.f'.format(FDAT_DIR, friend_id)) as f:
+            for line in f:
+                friends.append(int(line))
+    except:
+        pass
+    return (friends)
+
+
+def save_friends(user, ids):
+    with open('{0}/{1}.f'.format(FDAT_DIR, user), 'w', encoding='utf-8') as f:
+        f.write(str.join('\n', (str(x) for x in ids)))
+
+
+def collect_and_save_friends(user, refresh=False):
+    if not refresh and os.path.exists('{0}{1}.f'.format(FDAT_DIR, user)):
+        return('Already saved: {}'.format(user))
+    else:
+        friends = collect_friends(user)
+        save_friends(user, friends)
+        return('Friends saved: {}'.format(user))
 
 # Collect and save Tweets
+
+
 def tweets(query, filename='', q=False):
     if filename == '':
         filename = '/{0}/{1}.tweets.jsonl'.format(DIR, query)
@@ -118,6 +170,7 @@ def assistant(goal):
 if __name__ == '__main__':
     config = load_config()
     os.mkdir('/{}'.format(DIR))
+    os.mkdir('/{}'.format(FDAT_DIR))
     try:
         api = create_api(config)
     except:
