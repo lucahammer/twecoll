@@ -99,6 +99,8 @@ def cli():
 @click.option('-q',
               help='Optional: search query')
 def tweets(query='', filename='', q=''):
+
+    # todo: convert into valid filenames. (function)
     if filename == '':
         if query != '':
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
