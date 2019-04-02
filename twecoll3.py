@@ -88,12 +88,22 @@ def collect_and_save_friends(user, refresh=False):
         save_friends(user, friends)
         return('Friends saved: {}'.format(user))
 
+
+@click.group()
+def cli():
+    pass
+
 # Collect and save Tweets
-
-
-def tweets(query, filename='', q=False):
+@cli.command()
+@click.argument('query', required=False)
+@click.option('-q',
+              help='Optional: search query')
+def tweets(query='', filename='', q=''):
     if filename == '':
-        filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
+        if query != '':
+            filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
+        else:
+            filename = '{0}/{1}.tweets.jsonl'.format(DIR, q)
 
     if q:
         r = TwitterPager(api, 'search/tweets',
@@ -142,7 +152,7 @@ def gexf():
 '''
 
 
-@click.command()
+@cli.command()
 @click.option('--api_key', prompt='Go to https://developer.twitter.com/apps to create an app.\nPlease enter the API key',
               help='The Twitter API key.')
 @click.option('--api_key_secret', prompt='Please enter the API key secret',
@@ -152,7 +162,8 @@ def twitter_setup(api_key, api_key_secret):
     return(write_config(api_key, api_key_secret))
 
 
-@click.command()
+@cli.command()
+@click.argument('assistant')
 @click.option('--goal',
               type=click.Choice(
                   ['collect tweets', 'init accounts', 'fetch follows', 'create network', 'reset keys']),
@@ -187,4 +198,4 @@ if __name__ == '__main__':
         click.echo('Something is wrong with your config.')
         config = twitter_setup()
         api = create_api(config)
-    assistant()
+    cli()
