@@ -94,5 +94,4 @@ sub-commands:
 - Version 1.11 - Suppress nodes with missing data in edgelist by default
 - Version 1.12 - Improved init
 - Version 1.13 - Added option to skip mentions from queries in init
-- Version 2.0
-  - Rewrite to support Python 3.
+- Version 2.0 - Rewrite to support Python 3.
