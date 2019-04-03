@@ -99,20 +99,20 @@ def cli():
 @click.option('-q',
               help='Optional: search query')
 def tweets(query='', filename='', q=''):
-
     # todo: convert into valid filenames. (function)
     if filename == '':
-        if query != '':
+        if q == '' or q is None:
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
         else:
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, q)
 
-    if len(q) > 0:
+    if q == '' or q is None:
+        r = TwitterPager(api, 'statuses/user_timeline',
+                         {'screen_name': query, 'count': 200, 'tweet_mode': 'extended'})
+
+    else:
         r = TwitterPager(api, 'search/tweets',
                          {'q': q, 'count': 100, 'tweet_mode': 'extended'})
-    else:
-        r = TwitterPager(api, 'statuses/user_timeline',
-                         {'screen_name': query, 'count': 100, 'tweet_mode': 'extended'})
 
     n = 0
     with open(filename, 'a', encoding='utf-8') as f:

@@ -105,3 +105,6 @@ venv.bak/
 
 # config
 config.yaml
+
+# mkdocs documentation
+/local_data
