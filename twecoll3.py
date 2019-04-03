@@ -107,10 +107,12 @@ def tweets(query='', filename='', q=''):
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, q)
 
     if q == '' or q is None:
+        click.echo('Requesting Tweets by @{}'.format(q))
         r = TwitterPager(api, 'statuses/user_timeline',
                          {'screen_name': query, 'count': 200, 'tweet_mode': 'extended'})
 
     else:
+        click.echo('Requesting Tweets with the search query {}'.format(q))
         r = TwitterPager(api, 'search/tweets',
                          {'q': q, 'count': 100, 'tweet_mode': 'extended'})
 
@@ -119,7 +121,7 @@ def tweets(query='', filename='', q=''):
         for item in r.get_iterator(wait=2):
             n += 1
             if n % 1000 == 0:
-                click.echo('{0} Tweets already collected. Oldest from {1}.'.format(
+                click.echo('{0} Tweets received. Oldest from {1}.'.format(
                     n, item['created_at']))
             if 'full_text' in item:
                 json.dump(item, f)
