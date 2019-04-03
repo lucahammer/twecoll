@@ -107,9 +107,9 @@ def tweets(query='', filename='', q=''):
         else:
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, q)
 
-    if q:
+    if len(q) > 0:
         r = TwitterPager(api, 'search/tweets',
-                         {'q': query, 'count': 100, 'tweet_mode': 'extended'})
+                         {'q': q, 'count': 100, 'tweet_mode': 'extended'})
     else:
         r = TwitterPager(api, 'statuses/user_timeline',
                          {'screen_name': query, 'count': 100, 'tweet_mode': 'extended'})
