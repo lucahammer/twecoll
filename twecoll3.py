@@ -4,9 +4,18 @@ import yaml
 import json
 from TwitterAPI import TwitterAPI, TwitterPager
 from tqdm import tqdm
+import urllib.parse
 
 DIR = 'local_data'
 FDAT_DIR = '{}/fdat'.format(DIR)
+
+
+def encode_filename(filename):
+    '''
+    To preserve the original query, the filename is
+    url-encoded with no safe ("/") characters.
+    '''
+    return (urllib.parse.quote(filename.strip(), safe=''))
 
 
 def load_config(file='config.yaml'):
@@ -99,12 +108,16 @@ def cli():
 @click.option('-q',
               help='Optional: search query')
 def tweets(query='', filename='', q=''):
-    # todo: convert into valid filenames. (function)
+    '''
+    Collect Tweets by a user (max. 3200) or through a
+    search query (max. last 10 days).
+    '''
     if filename == '':
         if q == '' or q is None:
-            filename = '{0}/{1}.tweets.jsonl'.format(DIR, query)
+            filename = '{0}/{1}.tweets.jsonl'.format(
+                DIR, encode_filename(query))
         else:
-            filename = '{0}/{1}.tweets.jsonl'.format(DIR, q)
+            filename = '{0}/{1}.tweets.jsonl'.format(DIR, encode_filename(q))
 
     if q == '' or q is None:
         click.echo('Requesting Tweets by @{}'.format(q))
@@ -136,7 +149,7 @@ def tweets(query='', filename='', q=''):
 
 def load_accounts_from_file(filename):
     ids = []
-    with open('{}/{}'.format(DIR, filename), 'r', encoding='utf-8') as f:
+    with open('{}/{}'.format(DIR, encode_filename(filename)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             ids.append(item['user']['id'])
