@@ -120,7 +120,7 @@ def tweets(query='', filename='', q=''):
             filename = '{0}/{1}.tweets.jsonl'.format(DIR, encode_filename(q))
 
     if q == '' or q is None:
-        click.echo('Requesting Tweets by @{}'.format(q))
+        click.echo('Requesting Tweets by @{}'.format(query))
         r = TwitterPager(api, 'statuses/user_timeline',
                          {'screen_name': query, 'count': 200, 'tweet_mode': 'extended'})
 
@@ -159,8 +159,6 @@ def load_accounts_from_file(filename):
 '''
 # Todos
 
-def init():
-
 def fetch():
 
 def gdf():
@@ -180,7 +178,23 @@ def twitter_setup(api_key, api_key_secret):
 
 
 @cli.command()
-@click.argument('assistant')
+@click.argument('query')
+def init(query):
+    """Extract Twitter-Accounts from Tweets JSONL."""
+    extracted_accounts = []
+    with open('{}/{}.tweets.jsonl'.format(DIR, encode_filename(query)), 'r', encoding='utf-8') as f:
+        with open('{}/{}.accounts.jsonl'.format(DIR, encode_filename(query)), 'w', encoding='utf-8') as output:
+            for number, line in enumerate(f):
+                item = json.loads(line)
+                if item['user']['id'] not in extracted_accounts:
+                    json.dump(item['user'], output)
+                    output.write('\n')
+                    extracted_accounts.append(item['user']['id'])
+    click.echo('{} accounts extracted'.format(len(extracted_accounts)))
+    return()
+
+
+@cli.command()
 @click.option('--goal',
               type=click.Choice(
                   ['collect tweets', 'init accounts', 'fetch follows', 'create network', 'reset keys']),
