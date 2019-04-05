@@ -47,11 +47,10 @@ def create_api(config):
                      )
     return (api)
 
-# Get IDs of the accounts a given account follows
-# over5000 allows to collect more than 5000 friends
-
 
 def collect_friends(account_id, cursor=-1, over5000=False):
+    '''Get IDs of the accounts a given account follows
+    over5000 allows to collect more than 5000 friends'''
     ids = []
     r = api.request('friends/ids', {'user_id': account_id, 'cursor': cursor})
 
@@ -67,8 +66,8 @@ def collect_friends(account_id, cursor=-1, over5000=False):
 
     if over5000:
         if 'next_cursor' in r.json:
-            if json['next_cursor'] != 0:
-                ids = ids + collect_friends(account_id, json['next_cursor'])
+            if r.json['next_cursor'] != 0:
+                ids = ids + collect_friends(account_id, r.json['next_cursor'])
 
     return(ids)
 
@@ -91,11 +90,11 @@ def save_friends(user, ids):
 
 def collect_and_save_friends(user, refresh=False):
     if not refresh and os.path.exists('{0}{1}.f'.format(FDAT_DIR, user)):
-        return('Already saved: {}'.format(user))
+        return()
     else:
         friends = collect_friends(user)
         save_friends(user, friends)
-        return('Friends saved: {}'.format(user))
+        return()
 
 
 @click.group()
@@ -159,8 +158,6 @@ def load_accounts_from_file(filename):
 '''
 # Todos
 
-def fetch():
-
 def gdf():
 
 def gexf():
@@ -191,6 +188,22 @@ def init(query):
                     output.write('\n')
                     extracted_accounts.append(item['user']['id'])
     click.echo('{} accounts extracted'.format(len(extracted_accounts)))
+    return()
+
+
+@cli.command()
+@click.argument('query')
+def fetch(query):
+    """Collect followings of accounts in a JSONL."""
+    account_ids = []
+    with open('{}/{}.accounts.jsonl'.format(DIR, encode_filename(query)), 'r', encoding='utf-8') as f:
+        for number, line in enumerate(f):
+            item = json.loads(line)
+            account_ids.append(item['id'])
+    account_ids = list(set(account_ids))
+    for account_id in account_ids:
+        collect_and_save_friends(account_id)
+    click.echo('Tried to fetch {} accounts'.format(len(account_ids)))
     return()
 
 
