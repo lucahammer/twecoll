@@ -54,6 +54,8 @@ def collect_friends(account_id, cursor=-1, over5000=False):
     ids = []
     r = api.request('friends/ids', {'user_id': account_id, 'cursor': cursor})
 
+    # todo: wait if api requests are exhausted
+
     if 'errors' in r.json():
         if r.json()['errors'][0]['code'] == 34:
             return(ids)
