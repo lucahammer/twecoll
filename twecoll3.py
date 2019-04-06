@@ -274,9 +274,6 @@ def retweetnetwork(query):
     return()
 
 
-'''todo: follownetwork'''
-
-
 @cli.command()
 @click.option('--api_key', prompt='Go to https://developer.twitter.com/apps to create an app.\nPlease enter the API key',
               help='The Twitter API key.')
