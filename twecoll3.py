@@ -192,7 +192,6 @@ def retweetnetwork(query):
     Which account retweeted which and when."""
 
     tweets = load_tweets_from_file(query)
-
     filename = '{}.retweetnetwork.gexf'.format(encode_query(query))
 
     attr_qname = etree.QName(
@@ -212,9 +211,9 @@ def retweetnetwork(query):
     attributes = etree.SubElement(
         graph, 'attributes', {'class': 'node', 'mode': 'static'})
     etree.SubElement(attributes, 'attribute', {
-                     'id': 'country', 'title': 'country', 'type': 'string'})
+                     'id': 'location', 'title': 'location', 'type': 'string'})
     etree.SubElement(attributes, 'attribute', {
-                     'id': 'region', 'title': 'region', 'type': 'string'})
+                     'id': 'name', 'title': 'name', 'type': 'string'})
     etree.SubElement(attributes, 'attribute', {
                      'id': 'lang', 'title': 'lang', 'type': 'string'})
 
@@ -236,17 +235,17 @@ def retweetnetwork(query):
                          for_='lang',
                          value=tweet['user']['lang']
                          )
-        if 'derived' in tweet['user']:
+        if 'location' in tweet['user']:
             etree.SubElement(attvalues,
                              'attvalue',
-                             for_='country',
-                             value=tweet['user']['derived']['locations'][0]['country'] if 'locations' in tweet['user']['derived'] else ""
+                             for_='location',
+                             value=tweet['user']['location']
                              )
-        if 'derived' in tweet['user']:
+        if 'name' in tweet['user']:
             etree.SubElement(attvalues,
                              'attvalue',
-                             for_='region',
-                             value=tweet['user']['derived']['locations'][0]['region'] if 'region' in tweet['user']['derived']['locations'][0] else ""
+                             for_='name',
+                             value=tweet['user']['name']
                              )
         if 'retweeted_status' in tweet:
             etree.SubElement(edges,
