@@ -109,7 +109,7 @@ def save_friends(user, ids):
 
 
 def collect_and_save_friends(user, refresh=False):
-    if not refresh and os.path.exists('{0}{1}.f'.format(FDAT_DIR, user)):
+    if not refresh and os.path.exists('{0}/{1}.f'.format(FDAT_DIR, user)):
         return()
     else:
         friends = collect_friends(user)
