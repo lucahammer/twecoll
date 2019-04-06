@@ -106,5 +106,7 @@ venv.bak/
 # config
 config.yaml
 
-# mkdocs documentation
+# generated data
 /local_data
+*tweets.jsonl
+*retweetnetwork.gexf

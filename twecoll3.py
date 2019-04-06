@@ -7,17 +7,18 @@ from tqdm import tqdm
 import urllib.parse
 import time
 import datetime
+import lxml.etree as etree
 
 DIR = 'local_data'
 FDAT_DIR = '{}/fdat'.format(DIR)
 
 
-def encode_filename(filename):
+def encode_query(query):
     '''
-    To preserve the original query, the filename is
+    To preserve the original query, the query is
     url-encoded with no safe ("/") characters.
     '''
-    return (urllib.parse.quote(filename.strip(), safe=''))
+    return (urllib.parse.quote(query.strip(), safe=''))
 
 
 def load_config(file='config.yaml'):
@@ -134,9 +135,9 @@ def tweets(query='', filename='', q=''):
     if filename == '':
         if q == '' or q is None:
             filename = '{0}/{1}.tweets.jsonl'.format(
-                DIR, encode_filename(query))
+                DIR, encode_query(query))
         else:
-            filename = '{0}/{1}.tweets.jsonl'.format(DIR, encode_filename(q))
+            filename = '{0}/{1}.tweets.jsonl'.format(DIR, encode_query(q))
 
     if q == '' or q is None:
         click.echo('Requesting Tweets by @{}'.format(query))
@@ -168,20 +169,113 @@ def tweets(query='', filename='', q=''):
 
 def load_accounts_from_file(filename):
     ids = []
-    with open('{}/{}'.format(DIR, encode_filename(filename)), 'r', encoding='utf-8') as f:
+    with open('{}/{}'.format(DIR, encode_query(filename)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             ids.append(item['user']['id'])
     return(list(set(ids)))
 
 
-'''
-# Todos
+def load_tweets_from_file(query):
+    tweets = []
+    with open('{}/{}.tweets.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+        for number, line in enumerate(f):
+            item = json.loads(line)
+            tweets.append(item)
+    return(tweets)
 
-def gdf():
 
-def gexf():
-'''
+@cli.command()
+@click.argument('query')
+def retweetnetwork(query):
+    """Generate .gexf network file for Gephi.
+    Which account retweeted which and when."""
+
+    tweets = load_tweets_from_file(query)
+
+    filename = '{}.retweetnetwork.gexf'.format(encode_query(query))
+
+    attr_qname = etree.QName(
+        "http://www.w3.org/2001/XMLSchema-instance", "schemaLocation")
+
+    gexf = etree.Element('gexf',
+                         {attr_qname: 'http://www.gexf.net/1.3draft  http://www.gexf.net/1.3draft/gexf.xsd'},
+                         nsmap={
+                             None: 'http://graphml.graphdrawing.org/xmlns/graphml'},
+                         version='1.3')
+
+    graph = etree.SubElement(gexf,
+                             'graph',
+                             defaultedgetype='directed',
+                             mode='dynamic',
+                             timeformat='datetime')
+    attributes = etree.SubElement(
+        graph, 'attributes', {'class': 'node', 'mode': 'static'})
+    etree.SubElement(attributes, 'attribute', {
+                     'id': 'country', 'title': 'country', 'type': 'string'})
+    etree.SubElement(attributes, 'attribute', {
+                     'id': 'region', 'title': 'region', 'type': 'string'})
+    etree.SubElement(attributes, 'attribute', {
+                     'id': 'lang', 'title': 'lang', 'type': 'string'})
+
+    nodes = etree.SubElement(graph, 'nodes')
+    edges = etree.SubElement(graph, 'edges')
+    for tweet in reversed(tweets):
+        node = etree.SubElement(nodes,
+                                'node',
+                                id=tweet['user']['id_str'],
+                                Label=tweet['user']['screen_name'],
+                                start=datetime.datetime.strptime(tweet['created_at'], '%a %b %d %X %z %Y').isoformat(
+                                    timespec='seconds'),  # Fri Jul 27 07:52:57 +0000 2018
+                                end=(datetime.datetime.strptime(
+                                    tweet['created_at'], '%a %b %d %X %z %Y') + datetime.timedelta(seconds=1)).isoformat(timespec='seconds')
+                                )
+        attvalues = etree.SubElement(node, 'attvalues')
+        etree.SubElement(attvalues,
+                         'attvalue',
+                         for_='lang',
+                         value=tweet['user']['lang']
+                         )
+        if 'derived' in tweet['user']:
+            etree.SubElement(attvalues,
+                             'attvalue',
+                             for_='country',
+                             value=tweet['user']['derived']['locations'][0]['country'] if 'locations' in tweet['user']['derived'] else ""
+                             )
+        if 'derived' in tweet['user']:
+            etree.SubElement(attvalues,
+                             'attvalue',
+                             for_='region',
+                             value=tweet['user']['derived']['locations'][0]['region'] if 'region' in tweet['user']['derived']['locations'][0] else ""
+                             )
+        if 'retweeted_status' in tweet:
+            etree.SubElement(edges,
+                             'edge',
+                             {'id': tweet['id_str'],
+                              'source': tweet['user']['id_str'],
+                              'target': tweet['retweeted_status']['user']['id_str'],
+                              # Fri Jul 27 07:52:57 +0000 2018
+                              'start': datetime.datetime.strptime(tweet['created_at'], '%a %b %d %X %z %Y').isoformat(timespec='seconds'),
+                              'end': (datetime.datetime.strptime(tweet['created_at'], '%a %b %d %X %z %Y') + datetime.timedelta(seconds=1)).isoformat(timespec='seconds')
+                              })
+
+    # save to file
+    with open(filename, 'w', encoding='utf-8')as f:
+        f.write(etree.tostring(gexf, encoding='utf8',
+                               method='xml').decode('utf-8'))
+
+    # fix 'for' attributes
+    content = ''
+    with open(filename, 'r', encoding='utf-8') as f:
+        content = f.read()
+    with open(filename, 'w', encoding='utf-8') as f:
+        content = content.replace('for_', 'for')
+        f.write(content)
+    click.echo('Generated {}'.format(filename))
+    return()
+
+
+'''todo: follownetwork'''
 
 
 @cli.command()
@@ -199,8 +293,8 @@ def twitter_setup(api_key, api_key_secret):
 def init(query):
     """Extract Twitter-Accounts from Tweets JSONL."""
     extracted_accounts = []
-    with open('{}/{}.tweets.jsonl'.format(DIR, encode_filename(query)), 'r', encoding='utf-8') as f:
-        with open('{}/{}.accounts.jsonl'.format(DIR, encode_filename(query)), 'w', encoding='utf-8') as output:
+    with open('{}/{}.tweets.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+        with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'w', encoding='utf-8') as output:
             for number, line in enumerate(f):
                 item = json.loads(line)
                 if item['user']['id'] not in extracted_accounts:
@@ -216,7 +310,7 @@ def init(query):
 def fetch(query):
     """Collect followings of accounts in a JSONL."""
     account_ids = []
-    with open('{}/{}.accounts.jsonl'.format(DIR, encode_filename(query)), 'r', encoding='utf-8') as f:
+    with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             account_ids.append(item['id'])
