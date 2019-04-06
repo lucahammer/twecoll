@@ -5,6 +5,7 @@ import json
 from TwitterAPI import TwitterAPI, TwitterPager
 from tqdm import tqdm
 import urllib.parse
+import time
 
 DIR = 'local_data'
 FDAT_DIR = '{}/fdat'.format(DIR)
@@ -48,11 +49,25 @@ def create_api(config):
     return (api)
 
 
+def respectful_api_request(*args):
+    '''Respects api limits and retries after waiting.'''
+    r = api.request(*args)
+    if r.headers['x-rate-limit-remaining'] == '0':
+        waiting_time = int(
+            r.headers['x-rate-limit-reset']) - int(round(time.time()))
+        click.echo(
+            'Hit the API limit. Waiting for refresh in {} seconds.'.format(waiting_time))
+        time.sleep(waiting_time)
+        return (respectful_api_request(*args))
+    return(r)
+
+
 def collect_friends(account_id, cursor=-1, over5000=False):
     '''Get IDs of the accounts a given account follows
     over5000 allows to collect more than 5000 friends'''
     ids = []
-    r = api.request('friends/ids', {'user_id': account_id, 'cursor': cursor})
+    r = respectful_api_request(
+        'friends/ids', {'user_id': account_id, 'cursor': cursor})
 
     # todo: wait if api requests are exhausted
 
