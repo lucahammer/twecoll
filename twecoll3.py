@@ -6,6 +6,7 @@ from TwitterAPI import TwitterAPI, TwitterPager
 from tqdm import tqdm
 import urllib.parse
 import time
+import datetime
 
 DIR = 'local_data'
 FDAT_DIR = '{}/fdat'.format(DIR)
@@ -56,7 +57,9 @@ def respectful_api_request(*args):
         waiting_time = int(
             r.headers['x-rate-limit-reset']) - int(round(time.time()))
         click.echo(
-            'Hit the API limit. Waiting for refresh in {} seconds.'.format(waiting_time))
+            'Hit the API limit. Waiting for refresh at {}.'
+            .format(datetime.datetime.utcfromtimestamp(int(r.headers['x-rate-limit-reset']))
+                    .strftime('%Y-%m-%dT%H:%M:%SZ')))
         time.sleep(waiting_time)
         return (respectful_api_request(*args))
     return(r)
