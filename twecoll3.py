@@ -167,7 +167,7 @@ def tweets(query='', filename='', q=''):
     return
 
 
-def load_accounts_from_file(filename):
+def load_ids_from_file(filename):
     ids = []
     with open('{}/{}'.format(DIR, encode_query(filename)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
@@ -183,6 +183,15 @@ def load_tweets_from_file(query):
             item = json.loads(line)
             tweets.append(item)
     return(tweets)
+
+
+def load_accounts_from_file(query):
+    accounts = []
+    with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+        for number, line in enumerate(f):
+            item = json.loads(line)
+            accounts.append(item)
+    return(accounts)
 
 
 @cli.command()
@@ -272,6 +281,35 @@ def retweetnetwork(query):
         f.write(content)
     click.echo('Generated {}'.format(filename))
     return()
+
+
+@cli.command()
+@click.argument('query')
+def edgelist(query):
+    '''Create a .gdf network file for Gephi.
+    Which account follows which.'''
+
+    accounts = load_accounts_from_file(query)
+    account_ids = []
+    filename = '{}.follownetwork.gdf'.format(encode_query(query))
+
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write('nodedef>name VARCHAR,label VARCHAR,location VARCHAR\n')
+        with click.progressbar(accounts) as accounts_bar:
+            for account in accounts_bar:
+                account_ids.append(account['id'])
+                f.write('{0},{1},"{2}"\n'.format(
+                    account['id'],
+                    account['screen_name'],
+                    account['location'].replace('"', '\'')))
+
+        f.write('edgedef>node1 VARCHAR,node2 VARCHAR,directed BOOLEAN\n')
+        with click.progressbar(account_ids) as ids_bar:
+            for account_id in ids_bar:
+                friends_ids = get_friends(account_id)
+                for friend_id in friends_ids:
+                    if friend_id in account_ids:
+                        f.write('{0},{1},true\n'.format(friend_id, account_id))
 
 
 @cli.command()
