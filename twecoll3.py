@@ -221,9 +221,8 @@ def fetch(query):
             item = json.loads(line)
             account_ids.append(item['id'])
     account_ids = list(set(account_ids))
-    with click.progressbar(account_ids) as account_ids_bar:
-        for account_id in account_ids_bar:
-            collect_and_save_friends(account_id)
+    for account_id in tqdm(account_ids):
+        collect_and_save_friends(account_id)
     click.echo('Tried to fetch {} accounts'.format(len(account_ids)))
     return()
 
