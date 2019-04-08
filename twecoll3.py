@@ -384,14 +384,15 @@ def assistant(goal):
     click.echo('Assistant finished.')
 
 
+config = load_config()
+if not os.path.exists('{}'.format(FDAT_DIR)):
+    os.mkdir('{}'.format(FDAT_DIR))
+try:
+    api = create_api(config)
+except:
+    click.echo('Something is wrong with your config.')
+    config = twitter_setup()
+    api = create_api(config)
+
 if __name__ == '__main__':
-    config = load_config()
-    if not os.path.exists('{}'.format(FDAT_DIR)):
-        os.mkdir('{}'.format(FDAT_DIR))
-    try:
-        api = create_api(config)
-    except:
-        click.echo('Something is wrong with your config.')
-        config = twitter_setup()
-        api = create_api(config)
     cli()
