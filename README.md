@@ -4,6 +4,10 @@ Twecoll3 is a Twitter command-line tool written in Python. It can be used to ret
 
 ## Installation
 
+```
+$ pip install twecoll3
+```
+
 Twecoll uses oauth and has been updated to support the 1.1 version of the Twitter REST API. Register your own copy of twecoll3 on http://apps.twitter.com and copy the consumer key and secret.
 
 The first time you run a twecoll3 command, it will ask you for the consumer key and consumer secret. It will then retrieve the oauth token. Follow the instructions on the console.
