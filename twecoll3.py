@@ -9,8 +9,7 @@ import time
 import datetime
 import lxml.etree as etree
 
-DIR = 'local_data'
-FDAT_DIR = '{}/fdat'.format(DIR)
+FDAT_DIR = 'fdat'
 
 
 def encode_query(query):
@@ -134,10 +133,10 @@ def tweets(query='', filename='', q=''):
     '''
     if filename == '':
         if q == '' or q is None:
-            filename = '{0}/{1}.tweets.jsonl'.format(
-                DIR, encode_query(query))
+            filename = '{}.tweets.jsonl'.format(
+                encode_query(query))
         else:
-            filename = '{0}/{1}.tweets.jsonl'.format(DIR, encode_query(q))
+            filename = '{}.tweets.jsonl'.format(encode_query(q))
 
     if q == '' or q is None:
         click.echo('Requesting Tweets by @{}'.format(query))
@@ -169,7 +168,7 @@ def tweets(query='', filename='', q=''):
 
 def load_ids_from_file(filename):
     ids = []
-    with open('{}/{}'.format(DIR, encode_query(filename)), 'r', encoding='utf-8') as f:
+    with open('{}'.format(encode_query(filename)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             ids.append(item['user']['id'])
@@ -178,7 +177,7 @@ def load_ids_from_file(filename):
 
 def load_tweets_from_file(query):
     tweets = []
-    with open('{}/{}.tweets.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+    with open('{}.tweets.jsonl'.format(encode_query(query)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             tweets.append(item)
@@ -187,7 +186,7 @@ def load_tweets_from_file(query):
 
 def load_accounts_from_file(query):
     accounts = []
-    with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+    with open('{}.accounts.jsonl'.format(encode_query(query)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             accounts.append(item)
@@ -325,8 +324,8 @@ def twitter_setup(api_key, api_key_secret):
 def init(query):
     """Extract Twitter-Accounts from Tweets JSONL."""
     extracted_accounts = []
-    with open('{}/{}.tweets.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
-        with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'w', encoding='utf-8') as output:
+    with open('{}.tweets.jsonl'.format(encode_query(query)), 'r', encoding='utf-8') as f:
+        with open('{}.accounts.jsonl'.format(encode_query(query)), 'w', encoding='utf-8') as output:
             for number, line in enumerate(f):
                 item = json.loads(line)
                 if item['user']['id'] not in extracted_accounts:
@@ -342,7 +341,7 @@ def init(query):
 def fetch(query):
     """Collect followings of accounts in a JSONL."""
     account_ids = []
-    with open('{}/{}.accounts.jsonl'.format(DIR, encode_query(query)), 'r', encoding='utf-8') as f:
+    with open('{}.accounts.jsonl'.format(encode_query(query)), 'r', encoding='utf-8') as f:
         for number, line in enumerate(f):
             item = json.loads(line)
             account_ids.append(item['id'])
@@ -369,7 +368,7 @@ def assistant(goal):
             ))
         if tweet_type == 'query':
             query = click.prompt('Please enter your search query')
-            tweets(query, q=True)
+            tweets(["-q", query])
         if tweet_type == 'user':
             query = click.prompt('Please enter the screen name')
             tweets(query)
@@ -382,8 +381,6 @@ def assistant(goal):
 
 if __name__ == '__main__':
     config = load_config()
-    if not os.path.exists('{}'.format(DIR)):
-        os.mkdir('{}'.format(DIR))
     if not os.path.exists('{}'.format(FDAT_DIR)):
         os.mkdir('{}'.format(FDAT_DIR))
     try:
