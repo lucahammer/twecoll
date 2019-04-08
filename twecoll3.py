@@ -196,9 +196,8 @@ def load_accounts_from_file(query):
 
 @cli.command()
 @click.argument('query')
-def retweetnetwork(query):
-    """Generate .gexf network file for Gephi.
-    Which account retweeted which and when."""
+def network(query):
+    """Generate Retweet network .gexf."""
 
     tweets = load_tweets_from_file(query)
     filename = '{}.retweetnetwork.gexf'.format(encode_query(query))
@@ -286,8 +285,7 @@ def retweetnetwork(query):
 @cli.command()
 @click.argument('query')
 def edgelist(query):
-    '''Create a .gdf network file for Gephi.
-    Which account follows which.'''
+    '''Generate follow network .gdf.'''
 
     accounts = load_accounts_from_file(query)
     account_ids = []
