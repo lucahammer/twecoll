@@ -356,7 +356,7 @@ def fetch(query):
 @cli.command()
 @click.option('--goal',
               type=click.Choice(
-                  ['collect tweets', 'init accounts', 'fetch follows', 'create network', 'reset keys']),
+                  ['collect tweets', 'retweet network', 'follow network', 'reset keys']),
               prompt='What do you want to do?',
               help='Choose a goal.')
 def assistant(goal):
@@ -373,6 +373,10 @@ def assistant(goal):
         if tweet_type == 'user':
             query = click.prompt('Please enter the screen name')
             tweets(query)
+    if goal == 'retweet network':
+        query = click.prompt('Please enter your search query')
+        if not os.path.exists('{}.tweets.jsonl'.format(encode_query(query))):
+            click.echo('Need to collect the Tweets first.')
     click.echo('Assistant finished.')
 
 
