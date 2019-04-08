@@ -310,11 +310,10 @@ def edgelist(query):
 
 
 @cli.command()
-@click.option('--api_key', prompt='Go to https://developer.twitter.com/apps to create an app.\nPlease enter the API key',
-              help='The Twitter API key.')
-@click.option('--api_key_secret', prompt='Please enter the API key secret',
-              help='The Twitter API key secret.')
-def twitter_setup(api_key, api_key_secret):
+def twitter_setup():
+    click.echo('Go to https://developer.twitter.com/apps to create an app.')
+    api_key = click.prompt('Please enter the API key')
+    api_key_secret = click.prompt('Please enter the API key secret')
     """Enter and save Twitter app credentials."""
     return(write_config(api_key, api_key_secret))
 
@@ -375,7 +374,13 @@ def assistant(goal):
     if goal == 'retweet network':
         query = click.prompt('Please enter your search query')
         if not os.path.exists('{}.tweets.jsonl'.format(encode_query(query))):
-            click.echo('Need to collect the Tweets first.')
+            click.echo('Collecting Tweets before generating the network.')
+            tweets(["-q", query])
+        network([query])
+    if goal == 'follow network':
+        click.echo('not implemented yet. sry.')
+    if goal == 'reset keys':
+        twitter_setup([])
     click.echo('Assistant finished.')
 
 
