@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='twecoll3',
-    version='2.0.0',
+    version='2.0.1',
     description='CLI tool to create gdf and gexf files of social networks for use with Gephi',
     url='https://github.com/lucahammer/twecoll3',
     author='Luca Hammer',

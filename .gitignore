@@ -108,6 +108,8 @@ config.yaml
 
 # generated data
 /local_data
+/fdat
 *tweets.jsonl
+*accounts.jsonl
 *retweetnetwork.gexf
 *follownetwork.gdf

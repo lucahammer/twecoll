@@ -221,8 +221,6 @@ def network(query):
                      'id': 'location', 'title': 'location', 'type': 'string'})
     etree.SubElement(attributes, 'attribute', {
                      'id': 'name', 'title': 'name', 'type': 'string'})
-    etree.SubElement(attributes, 'attribute', {
-                     'id': 'lang', 'title': 'lang', 'type': 'string'})
 
     nodes = etree.SubElement(graph, 'nodes')
     edges = etree.SubElement(graph, 'edges')
@@ -237,11 +235,6 @@ def network(query):
                                     tweet['created_at'], '%a %b %d %X %z %Y') + datetime.timedelta(seconds=1)).isoformat(timespec='seconds')
                                 )
         attvalues = etree.SubElement(node, 'attvalues')
-        etree.SubElement(attvalues,
-                         'attvalue',
-                         for_='lang',
-                         value=tweet['user']['lang']
-                         )
         if 'location' in tweet['user']:
             etree.SubElement(attvalues,
                              'attvalue',

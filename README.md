@@ -76,4 +76,5 @@ sub-commands:
 
 ## Changes
 
+- Version 2.0.1 - Removed language attribute because Twitter doesn't provide it anymore.
 - Version 2.0 - Rewrite to support Python 3.
